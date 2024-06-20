@@ -4,6 +4,10 @@ import { verifyToken } from "../helpers/authHelper.js";
 
 const router = express.Router();
 
+router.get("/", async (req, res) => {
+	return res.status(200).json("Hello from the api");
+});
+
 router.post("/:uid", async (req, res) => {
 	try {
 		console.log("inside server");
