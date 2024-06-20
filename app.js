@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(
 	cors({
-		origin: ["*"],
+		origin: ["https://jsprodigy.netlify.app"],
 		credentials: true,
 	})
 );
