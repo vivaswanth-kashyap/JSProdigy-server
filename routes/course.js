@@ -9,3 +9,5 @@ router.get("/", async (req, res) => {
 		description: "This course is extremely comprehensive",
 	});
 });
+
+export default router;
