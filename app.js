@@ -10,7 +10,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(
 	cors({
-		origin: ["https://jsprodigy.netlify.app", "https://jsprodigy.com"],
+		origin: [
+			"https://jsprodigy.netlify.app",
+			"https://jsprodigy.com",
+			"http://localhost:3000",
+		],
 		credentials: true,
 	})
 );
