@@ -1,0 +1,47 @@
+ <div class="container mx-auto px-4 py-8">
+   <h1 class="text-4xl font-bold mb-4">Welcome to {{title}} API</h1>
+   <p class="text-xl mb-8">JSProdigy API is a powerful and easy-to-use API that allows you to create and manage user profiles.</p>
+
+   <h2 class="text-2xl font-bold mb-4">Getting Started</h2>
+   <p class="mb-4">To get started with JSProdigy API, follow these simple steps:</p>
+   <ol class="list-decimal pl-8 mb-8">
+     <li>Sign up for an API key at <a href="/signup" class="text-blue-500 underline">api.jsprodigy.com/signup</a>.</li>
+     <li>Read the API documentation to understand the available endpoints and request/response formats.</li>
+     <li>Make HTTP requests to the API endpoints using your preferred programming language or tool.</li>
+     <li>Handle the API responses and integrate the data into your application.</li>
+   </ol>
+
+   <h2 class="text-2xl font-bold mb-4">API Endpoints</h2>
+   <p class="mb-4">The following are the main endpoints provided by JSProdigy API:</p>
+   <ul class="list-disc pl-8 mb-8">
+     <li><code>POST /users/profile</code> - Create a new user profile.</li>
+     <li><code>GET /users/:uid</code> - Retrieve a user profile by UID.</li>
+     <li><code>PUT /users/:uid</code> - Update a user profile.</li>
+     <li><code>DELETE /users/:uid</code> - Delete a user profile.</li>
+   </ul>
+
+   <h2 class="text-2xl font-bold mb-4">Authentication</h2>
+   <p class="mb-4">JSProdigy API uses API key-based authentication. Include your API key in the <code>Authorization</code> header of each request as follows:</p>
+   <pre class="bg-gray-200 p-4 rounded mb-8"><code>Authorization: Bearer YOUR_API_KEY</code></pre>
+
+   <h2 class="text-2xl font-bold mb-4">Example Request</h2>
+   <p class="mb-4">Here's an example of creating a new user profile using cURL:</p>
+   <pre class="bg-gray-200 p-4 rounded mb-8"><code>curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john@example.com",
+    "phoneNumber": "1234567890",
+    "dateOfBirth": "1990-01-01",
+    "gender": "male",
+    "occupation": "Developer",
+    "educationLevel": "Bachelor's"
+  }' \
+  https://api.jsprodigy.com/users/profile
+</code></pre>
+
+   <h2 class="text-2xl font-bold mb-4">Support</h2>
+   <p class="mb-4">If you have any questions or need assistance, please contact our support team at <a href="mailto:info@jsprodigy.com" class="text-blue-500 underline">support@jsprodigy.com</a>.</p>
+ </div>
