@@ -38,13 +38,24 @@ router.post("/profile", async (req, res) => {
 
 		return res.status(200).json(user);
 	} catch (error) {
-		return res.json(error);
+		console.error(error);
+	}
+});
+
+router.get("/:uid", async (req, res) => {
+	try {
+		const uid = xss(req.params.uid);
+		const user = await userData.findUser(uid);
+
+		return res.status(200).json(user);
+	} catch (error) {
+		res.status(500).json(error);
 	}
 });
 
 router.post("/:uid", async (req, res) => {
 	try {
-		console.log("inside server");
+		//console.log("inside server");
 		if (!req.headers.authorization) {
 			return res
 				.status(401)
