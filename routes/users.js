@@ -78,4 +78,14 @@ router.post("/:uid", async (req, res) => {
 	}
 });
 
+router.patch("/:uid", async (req, res) => {
+	try {
+		const updationInfo = await userData.giveCourseAccess(uid);
+		return updationInfo;
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json("course access request unsuccessful");
+	}
+});
+
 export default router;

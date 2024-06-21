@@ -22,6 +22,7 @@ const addUser = async (
 		gender,
 		occupation,
 		educationLevel,
+		courseAccess: false,
 	};
 	const userCollection = await users();
 	const insertInfo = await userCollection.insertOne(newUser);
@@ -48,4 +49,16 @@ const findUser = async (uid) => {
 	return user;
 };
 
-export { addUser, findUser };
+const giveCourseAccess = async (uid) => {
+	const userCollection = await users();
+
+	const updationInfo = await userCollection.findOneAndUpdate(
+		{ uid: uid },
+		{ $set: { courseAccess: true } },
+		{ document: "after" }
+	);
+
+	return updationInfo;
+};
+
+export { addUser, findUser, giveCourseAccess };
