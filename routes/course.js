@@ -7,6 +7,7 @@ router.get("/", async (req, res) => {
 	return res.status(200).json({
 		title: "Full Stack Web development with javascript",
 		description: "This course is extremely comprehensive",
+		videoIds: ["965167835"],
 	});
 });
 
