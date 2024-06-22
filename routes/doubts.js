@@ -1,4 +1,5 @@
 import express from "express";
+import xss from "xss";
 import * as doubtsData from "../data/doubts.js";
 
 const router = express.Router();

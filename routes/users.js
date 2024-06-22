@@ -80,8 +80,9 @@ router.post("/:uid", async (req, res) => {
 
 router.patch("/:uid", async (req, res) => {
 	try {
+		const uid = req.params.uid;
 		const updationInfo = await userData.giveCourseAccess(uid);
-		return updationInfo;
+		return res.json(updationInfo);
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json("course access request unsuccessful");
