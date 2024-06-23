@@ -22,7 +22,7 @@ const addUser = async (
 		gender,
 		occupation,
 		educationLevel,
-		courseAccess: false,
+		courseAccess: null,
 	};
 	const userCollection = await users();
 	const insertInfo = await userCollection.insertOne(newUser);
@@ -49,16 +49,18 @@ const findUser = async (uid) => {
 	return user;
 };
 
-const giveCourseAccess = async (uid) => {
+const giveCourseAccess = async (uid, tier) => {
 	const userCollection = await users();
 
 	const updationInfo = await userCollection.findOneAndUpdate(
 		{ uid: uid },
-		{ $set: { courseAccess: true } },
+		{ $set: { courseAccess: tier } },
 		{ document: "after" }
 	);
 
-	return updationInfo;
+	const updatedUser = await findUser(uid);
+
+	return updatedUser;
 };
 
 export { addUser, findUser, giveCourseAccess };

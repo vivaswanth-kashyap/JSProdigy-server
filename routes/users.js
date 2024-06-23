@@ -81,7 +81,8 @@ router.post("/:uid", async (req, res) => {
 router.patch("/:uid", async (req, res) => {
 	try {
 		const uid = req.params.uid;
-		const updationInfo = await userData.giveCourseAccess(uid);
+		const tier = req.body.tier;
+		const updationInfo = await userData.giveCourseAccess(uid, tier);
 		return res.json(updationInfo);
 	} catch (error) {
 		console.error(error);
