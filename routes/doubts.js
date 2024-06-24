@@ -1,5 +1,7 @@
 import express from "express";
 import xss from "xss";
+import { marked } from "marked";
+import { getAIResponse } from "../data/openai.js";
 import * as doubtsData from "../data/doubts.js";
 
 const router = express.Router();
@@ -25,6 +27,100 @@ router.post("/", async (req, res) => {
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json("doubt addition unsuccessful");
+	}
+});
+
+function unescapeString(str) {
+	str = str
+		.replace(/\\n/g, "\n")
+		.replace(/\\r/g, "\r")
+		.replace(/\\t/g, "\t")
+		.replace(/\\b/g, "\b")
+		.replace(/\\f/g, "\f")
+		.replace(/\\\"/g, '"')
+		.replace(/\\\'/g, "'")
+		.replace(/\\\\/g, "\\");
+
+	return str.replace(/\\u[\dA-F]{4}/gi, (match) =>
+		String.fromCharCode(parseInt(match.replace(/\\u/g, ""), 16))
+	);
+}
+
+function parseAIResponse(rawResponse) {
+	const tokens = marked.lexer(rawResponse);
+	let structuredResponse = {
+		title: "AI Response",
+		steps: [],
+		conclusion: "",
+	};
+
+	let currentStep = null;
+	let isInConclusion = false;
+
+	tokens.forEach((token) => {
+		if (token.type === "heading") {
+			if (token.depth === 1) {
+				structuredResponse.title = token.text;
+			} else if (token.depth === 2) {
+				if (token.text.toLowerCase().includes("conclusion")) {
+					isInConclusion = true;
+				} else {
+					if (currentStep) structuredResponse.steps.push(currentStep);
+					currentStep = { description: token.text, code: null, language: null };
+				}
+			}
+		} else if (token.type === "paragraph") {
+			if (isInConclusion) {
+				structuredResponse.conclusion += token.text + " ";
+			} else if (currentStep) {
+				currentStep.description += " " + token.text;
+			} else {
+				if (structuredResponse.steps.length === 0) {
+					currentStep = { description: token.text, code: null, language: null };
+				} else {
+					structuredResponse.conclusion += token.text + " ";
+				}
+			}
+		} else if (token.type === "code") {
+			if (currentStep) {
+				currentStep.code = token.text;
+				currentStep.language = token.lang || "plaintext";
+				structuredResponse.steps.push(currentStep);
+				currentStep = null;
+			} else {
+				structuredResponse.steps.push({
+					description: "Code snippet:",
+					code: token.text,
+					language: token.lang || "plaintext",
+				});
+			}
+		}
+	});
+
+	if (currentStep) structuredResponse.steps.push(currentStep);
+	structuredResponse.conclusion = structuredResponse.conclusion.trim();
+
+	return structuredResponse;
+}
+
+router.post("/ai-response", async (req, res) => {
+	try {
+		const { doubt } = req.body;
+		if (!doubt || typeof doubt !== "string" || doubt.trim().length === 0) {
+			return res
+				.status(400)
+				.json({ error: "Invalid doubt. Please provide a non-empty string." });
+		}
+		const aiResponse = await getAIResponse(doubt);
+		const unescapedResponse = unescapeString(aiResponse);
+		const structuredResponse = parseAIResponse(unescapedResponse);
+
+		res.json({ response: structuredResponse });
+	} catch (error) {
+		console.error("Error in /ai-response route:", error);
+		res
+			.status(500)
+			.json({ error: "An error occurred while processing your request." });
 	}
 });
 
