@@ -10,7 +10,7 @@ const askDoubt = async (uid, doubt) => {
 	};
 	const doubtsCollection = await doubts();
 	const insertInfo = await doubtsCollection.insertOne(newDoubt);
-	if (!insertInfo.acknowledged || !insertedId.insertedId) {
+	if (!insertInfo.acknowledged || !insertInfo.insertedId) {
 		throw "could not add a question";
 	}
 	const newId = insertInfo.insertedId.toString();
