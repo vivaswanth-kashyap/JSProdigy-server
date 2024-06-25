@@ -2,61 +2,80 @@ import express from "express";
 import { getVideoUrl } from "../data/videos.js";
 import ffmpeg from "fluent-ffmpeg";
 import axios from "axios";
-import stream from "stream";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { v4 as uuidv4 } from "uuid";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
 router.get("/:key", async (req, res) => {
-	let ffmpegCommand;
+	const videoKey = req.params.key;
+	const tempDir = path.join(__dirname, "../temp");
+	const inputPath = path.join(tempDir, `${uuidv4()}_input.mov`);
+	const outputPath = path.join(tempDir, `${uuidv4()}_output.mp4`);
+
 	try {
-		const videoKey = req.params.key;
+		if (!fs.existsSync(tempDir)) {
+			fs.mkdirSync(tempDir, { recursive: true });
+		}
+
 		console.log(`Generating URL for video: ${videoKey}`);
 		const url = await getVideoUrl(videoKey);
 
-		const response = await axios.get(url, { responseType: "stream" });
+		console.log("Downloading video...");
+		const response = await axios({
+			method: "get",
+			url: url,
+			responseType: "stream",
+		});
 
-		res.setHeader("Content-Type", "video/mp4");
+		const writer = fs.createWriteStream(inputPath);
+		response.data.pipe(writer);
 
-		ffmpegCommand = ffmpeg(response.data)
-			.outputFormat("mp4")
-			.videoCodec("libx264")
-			.audioCodec("aac")
-			.on("start", (commandLine) => {
-				console.log("FFmpeg started with command:", commandLine);
-			})
-			.on("progress", (progress) => {
-				console.log("FFmpeg progress:", progress);
-			})
-			.on("error", (err, stdout, stderr) => {
-				console.error("FFmpeg error:", err.message);
-				console.error("FFmpeg stdout:", stdout);
-				console.error("FFmpeg stderr:", stderr);
-				if (!res.headersSent) {
-					res
-						.status(500)
-						.json({ error: "Error processing video", details: err.message });
-				}
-			})
-			.on("end", () => {
-				console.log("FFmpeg processing finished");
-			});
+		await new Promise((resolve, reject) => {
+			writer.on("finish", resolve);
+			writer.on("error", reject);
+		});
 
-		ffmpegCommand.pipe(res, { end: true });
+		console.log("Video downloaded. Starting conversion...");
+
+		await new Promise((resolve, reject) => {
+			ffmpeg(inputPath)
+				.outputOptions([
+					"-c:v libx264",
+					"-crf 23",
+					"-preset medium",
+					"-c:a aac",
+					"-b:a 128k",
+				])
+				.output(outputPath)
+				.on("end", () => {
+					console.log("Conversion finished");
+					resolve();
+				})
+				.on("error", (err) => {
+					console.error("Error:", err);
+					reject(err);
+				})
+				.run();
+		});
+
+		console.log("Sending converted video...");
+		res.sendFile(outputPath, () => {
+			// Clean up temporary files after sending
+			fs.unlinkSync(inputPath);
+			fs.unlinkSync(outputPath);
+		});
 	} catch (error) {
-		console.error("Error streaming video:", error);
-		if (!res.headersSent) {
-			res
-				.status(500)
-				.json({ error: "Failed to stream video", details: error.message });
-		}
+		console.error("Error processing video:", error);
+		res
+			.status(500)
+			.json({ error: "Failed to process video", details: error.message });
 	}
-
-	// Clean up FFmpeg process if the client disconnects
-	req.on("close", () => {
-		if (ffmpegCommand) {
-			ffmpegCommand.kill("SIGKILL");
-		}
-	});
 });
 
 export default router;
