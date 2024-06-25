@@ -1,13 +1,21 @@
 import admin from "firebase-admin";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 admin.initializeApp({
 	// Your Firebase service account credentials
-	apiKey: "AIzaSyAZrqo7Kw7oGE-fboi8pandudywZCIv-lo",
-	authDomain: "jsprodigy-fdb31.firebaseapp.com",
-	projectId: "jsprodigy-fdb31",
-	storageBucket: "jsprodigy-fdb31.appspot.com",
-	messagingSenderId: "604750583953",
-	appId: "1:604750583953:web:bf3ff44479309e37410730",
+	apiKey: process.env.fbApiKey,
+	authDomain: process.env.fbAuthDomain,
+	projectId: process.env.fbProjectId,
+	storageBucket: process.env.fbStorageBucket,
+	messagingSenderId: process.env.fbMessagingSenderId,
+	appId: process.env.fbAppId,
 });
 
 export async function verifyToken(token) {
