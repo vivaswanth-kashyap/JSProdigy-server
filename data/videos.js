@@ -8,6 +8,17 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
+console.log(
+	"AWS_ACCESS_KEY_ID:",
+	process.env.AWS_ACCESS_KEY_ID ? "Set" : "Not set"
+);
+console.log(
+	"AWS_SECRET_ACCESS_KEY:",
+	process.env.AWS_SECRET_ACCESS_KEY ? "Set" : "Not set"
+);
+console.log("AWS_REGION:", process.env.AWS_REGION);
+console.log("S3_BUCKET_NAME:", process.env.S3_BUCKET_NAME);
+
 AWS.config.update({
 	accessKeyId: process.env.AWS_ACCESS_KEY_ID,
 	secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -29,7 +40,9 @@ export const listVideos = async () => {
 	};
 
 	try {
+		console.log("Attempting to list videos from bucket:", BUCKET_NAME);
 		const data = await s3.listObjectsV2(params).promise();
+		console.log("Successfully listed videos");
 		return data.Contents.map((object) => ({
 			key: object.Key,
 			size: object.Size,
@@ -49,7 +62,10 @@ export const getVideoUrl = async (key) => {
 	};
 
 	try {
-		return await s3.getSignedUrlPromise("getObject", params);
+		console.log("Generating signed URL for key:", key);
+		const url = await s3.getSignedUrlPromise("getObject", params);
+		console.log("Successfully generated signed URL");
+		return url;
 	} catch (error) {
 		console.error("Error generating signed URL:", error);
 		throw error;
