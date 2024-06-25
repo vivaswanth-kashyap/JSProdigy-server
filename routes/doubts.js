@@ -1,6 +1,7 @@
 import express from "express";
 import xss from "xss";
 import { marked } from "marked";
+import { ObjectId } from "mongodb";
 import { getAIResponse } from "../data/openai.js";
 import * as doubtsData from "../data/doubts.js";
 

@@ -65,6 +65,8 @@ const addReply = async (uid, id, reply, isAI = false) => {
 			throw new Error(`No document found with id: ${id}`);
 		}
 
+		console.log("Existing doubt found:", existingDoubt);
+
 		const updatedInfo = await doubtsCollection.findOneAndUpdate(
 			{ _id: new ObjectId(id) },
 			{ $push: { replies: newReply } },
