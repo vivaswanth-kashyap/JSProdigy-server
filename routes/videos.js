@@ -1,5 +1,9 @@
 import express from "express";
 import { listVideos, getVideoUrl } from "../data/videos.js";
+import express from "express";
+import ffmpeg from "fluent-ffmpeg";
+import axios from "axios";
+import stream from "stream";
 
 const router = express.Router();
 
@@ -13,14 +17,30 @@ router.get("/", async (req, res) => {
 	}
 });
 
-// Get signed URL for a specific video
 router.get("/:key", async (req, res) => {
 	try {
-		const videoKey = decodeURIComponent(req.params.key);
+		const videoKey = req.params.key;
+		console.log(`Generating URL for video: ${videoKey}`);
 		const url = await getVideoUrl(videoKey);
-		res.json({ url });
+
+		const response = await axios.get(url, { responseType: "stream" });
+
+		res.setHeader("Content-Type", "video/mp4");
+
+		ffmpeg(response.data)
+			.outputFormat("mp4")
+			.videoCodec("libx264")
+			.audioCodec("aac")
+			.on("error", (err) => {
+				console.error("An error occurred: " + err.message);
+				res.status(500).send("Error processing video");
+			})
+			.pipe(res, { end: true });
 	} catch (error) {
-		res.status(500).json({ error: "Failed to generate video URL" });
+		console.error("Error streaming video:", error);
+		res
+			.status(500)
+			.json({ error: "Failed to stream video", details: error.message });
 	}
 });
 
