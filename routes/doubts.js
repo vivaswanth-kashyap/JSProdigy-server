@@ -11,8 +11,10 @@ router.get("/", async (req, res) => {
 		const doubts = await doubtsData.findAllDoubts();
 		return res.status(200).json(doubts);
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json("Couldn't find the doubts");
+		console.error("Error in GET /doubts:", error);
+		return res
+			.status(500)
+			.json({ error: "Couldn't find the doubts", details: error.message });
 	}
 });
 
@@ -23,11 +25,14 @@ router.post("/", async (req, res) => {
 		const newDoubt = await doubtsData.askDoubt(uid, doubt);
 		return res.status(200).json(newDoubt);
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json("doubt addition unsuccessful");
+		console.error("Error in POST /doubts:", error);
+		return res
+			.status(500)
+			.json({ error: "Doubt addition unsuccessful", details: error.message });
 	}
 });
 
+// ... (keep the unescapeString and parseAIResponse functions as they are)
 function unescapeString(str) {
 	str = str
 		.replace(/\\n/g, "\n")
@@ -121,12 +126,15 @@ router.post("/ai-response", async (req, res) => {
 			true
 		);
 
-		return res.json(updatedDoubt);
+		res.json(updatedDoubt);
 	} catch (error) {
-		console.error("Error in /ai-response route:", error);
-		return res
+		console.error("Error in POST /doubts/ai-response:", error);
+		res
 			.status(500)
-			.json({ error: "An error occurred while processing your request." });
+			.json({
+				error: "An error occurred while processing your request.",
+				details: error.message,
+			});
 	}
 });
 
@@ -136,11 +144,15 @@ router.post("/reply", async (req, res) => {
 		const id = xss(req.body.id);
 		const reply = xss(req.body.reply);
 		const isAI = req.body.isAI || false;
+		console.log("Received reply request:", { uid, id, reply, isAI });
 		const updatedDoubt = await doubtsData.addReply(uid, id, reply, isAI);
+		console.log("Updated doubt:", updatedDoubt);
 		return res.status(200).json(updatedDoubt);
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json("reply addition unsuccessful");
+		console.error("Error in POST /doubts/reply:", error);
+		return res
+			.status(500)
+			.json({ error: "Reply addition unsuccessful", details: error.message });
 	}
 });
 
