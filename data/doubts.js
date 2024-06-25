@@ -78,6 +78,4 @@ const addReply = async (uid, id, reply, isAI = false) => {
 	}
 };
 
-export { addReply };
-
 export { askDoubt, findAllDoubts, findDoubt, addReply };
