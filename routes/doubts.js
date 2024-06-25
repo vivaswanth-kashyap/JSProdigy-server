@@ -121,10 +121,10 @@ router.post("/ai-response", async (req, res) => {
 			true
 		);
 
-		res.json(updatedDoubt);
+		return res.json(updatedDoubt);
 	} catch (error) {
 		console.error("Error in /ai-response route:", error);
-		res
+		return res
 			.status(500)
 			.json({ error: "An error occurred while processing your request." });
 	}
