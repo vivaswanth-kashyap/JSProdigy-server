@@ -67,19 +67,26 @@ const addReply = async (uid, id, reply, isAI = false) => {
 
 		console.log("Existing doubt found:", existingDoubt);
 
-		const updatedInfo = await doubtsCollection.findOneAndUpdate(
+		const updateResult = await doubtsCollection.updateOne(
 			{ _id: new ObjectId(id) },
-			{ $push: { replies: newReply } },
-			{ returnDocument: "after" }
+			{ $push: { replies: newReply } }
 		);
 
-		if (!updatedInfo.value) {
-			console.error("Update operation did not modify any document");
-			throw new Error("Failed to update the document");
+		console.log("Update result:", updateResult);
+
+		if (updateResult.modifiedCount === 0) {
+			throw new Error(
+				`Failed to update the document. Update result: ${JSON.stringify(
+					updateResult
+				)}`
+			);
 		}
 
-		console.log("Updated doubt:", updatedInfo.value);
-		return updatedInfo.value;
+		const updatedDoubt = await doubtsCollection.findOne({
+			_id: new ObjectId(id),
+		});
+		console.log("Updated doubt:", updatedDoubt);
+		return updatedDoubt;
 	} catch (error) {
 		console.error("Error in addReply:", error);
 		throw error;

@@ -150,6 +150,10 @@ router.post("/reply", async (req, res) => {
 			return res.status(400).json({ error: "Invalid doubt id format" });
 		}
 
+		// Log the doubt before update
+		const doubtBeforeUpdate = await doubtsData.findDoubt(id);
+		console.log("Doubt before update:", doubtBeforeUpdate);
+
 		const updatedDoubt = await doubtsData.addReply(uid, id, reply);
 		console.log("Updated doubt:", updatedDoubt);
 		res.json(updatedDoubt);
@@ -164,6 +168,7 @@ router.post("/reply", async (req, res) => {
 			res.status(500).json({
 				error: "An error occurred while processing your request.",
 				details: error.message,
+				stack: error.stack,
 			});
 		}
 	}
