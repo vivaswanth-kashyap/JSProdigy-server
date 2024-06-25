@@ -1,22 +1,13 @@
 import express from "express";
-import { listVideos, getVideoUrl } from "../data/videos.js";
+import { getVideoUrl } from "../data/videos.js";
 import ffmpeg from "fluent-ffmpeg";
 import axios from "axios";
 import stream from "stream";
 
 const router = express.Router();
 
-// Get list of all videos
-router.get("/", async (req, res) => {
-	try {
-		const videos = await listVideos();
-		res.json(videos);
-	} catch (error) {
-		res.status(500).json({ error: "Failed to retrieve videos" });
-	}
-});
-
 router.get("/:key", async (req, res) => {
+	let ffmpegCommand;
 	try {
 		const videoKey = req.params.key;
 		console.log(`Generating URL for video: ${videoKey}`);
@@ -26,21 +17,46 @@ router.get("/:key", async (req, res) => {
 
 		res.setHeader("Content-Type", "video/mp4");
 
-		ffmpeg(response.data)
+		ffmpegCommand = ffmpeg(response.data)
 			.outputFormat("mp4")
 			.videoCodec("libx264")
 			.audioCodec("aac")
-			.on("error", (err) => {
-				console.error("An error occurred: " + err.message);
-				res.status(500).send("Error processing video");
+			.on("start", (commandLine) => {
+				console.log("FFmpeg started with command:", commandLine);
 			})
-			.pipe(res, { end: true });
+			.on("progress", (progress) => {
+				console.log("FFmpeg progress:", progress);
+			})
+			.on("error", (err, stdout, stderr) => {
+				console.error("FFmpeg error:", err.message);
+				console.error("FFmpeg stdout:", stdout);
+				console.error("FFmpeg stderr:", stderr);
+				if (!res.headersSent) {
+					res
+						.status(500)
+						.json({ error: "Error processing video", details: err.message });
+				}
+			})
+			.on("end", () => {
+				console.log("FFmpeg processing finished");
+			});
+
+		ffmpegCommand.pipe(res, { end: true });
 	} catch (error) {
 		console.error("Error streaming video:", error);
-		res
-			.status(500)
-			.json({ error: "Failed to stream video", details: error.message });
+		if (!res.headersSent) {
+			res
+				.status(500)
+				.json({ error: "Failed to stream video", details: error.message });
+		}
 	}
+
+	// Clean up FFmpeg process if the client disconnects
+	req.on("close", () => {
+		if (ffmpegCommand) {
+			ffmpegCommand.kill("SIGKILL");
+		}
+	});
 });
 
 export default router;
