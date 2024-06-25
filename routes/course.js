@@ -1,14 +1,20 @@
 import express from "express";
-import xss from "xss";
+import { listVideos } from "../data/videos.js";
 
 const router = express.Router();
 
 router.get("/", async (req, res) => {
-	return res.status(200).json({
-		title: "Full Stack Web development with javascript",
-		description: "This course is extremely comprehensive",
-		videoIds: ["965167835"],
-	});
+	try {
+		const videos = await listVideos();
+		return res.status(200).json({
+			title: "Full Stack Web Development with JavaScript",
+			description: "This course is extremely comprehensive",
+			videos: videos,
+		});
+	} catch (error) {
+		console.error("Error fetching course data:", error);
+		res.status(500).json({ error: "Failed to fetch course data" });
+	}
 });
 
 export default router;
