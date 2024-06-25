@@ -18,7 +18,7 @@ const s3 = new AWS.S3();
 
 const listVideos = async () => {
 	const params = {
-		Bucket: S3_BUCKET_NAME,
+		Bucket: process.env.S3_BUCKET_NAME,
 	};
 
 	try {
@@ -36,7 +36,7 @@ const listVideos = async () => {
 
 const getVideoUrl = async (key) => {
 	const params = {
-		Bucket: S3_BUCKET_NAME,
+		Bucket: process.env.S3_BUCKET_NAME,
 		Key: key,
 		Expires: 3600, // URL will be valid for 1 hour
 	};
