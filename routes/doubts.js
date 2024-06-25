@@ -20,9 +20,7 @@ router.post("/", async (req, res) => {
 	try {
 		const uid = xss(req.body.uid);
 		const doubt = xss(req.body.doubt);
-
 		const newDoubt = await doubtsData.askDoubt(uid, doubt);
-
 		return res.status(200).json(newDoubt);
 	} catch (error) {
 		console.error(error);
@@ -105,7 +103,7 @@ function parseAIResponse(rawResponse) {
 
 router.post("/ai-response", async (req, res) => {
 	try {
-		const { doubt } = req.body;
+		const { doubt, id } = req.body;
 		if (!doubt || typeof doubt !== "string" || doubt.trim().length === 0) {
 			return res
 				.status(400)
@@ -115,12 +113,34 @@ router.post("/ai-response", async (req, res) => {
 		const unescapedResponse = unescapeString(aiResponse);
 		const structuredResponse = parseAIResponse(unescapedResponse);
 
-		res.json({ response: structuredResponse });
+		// Save AI response as a reply
+		const updatedDoubt = await doubtsData.addReply(
+			"AI",
+			id,
+			JSON.stringify(structuredResponse),
+			true
+		);
+
+		res.json(updatedDoubt);
 	} catch (error) {
 		console.error("Error in /ai-response route:", error);
 		res
 			.status(500)
 			.json({ error: "An error occurred while processing your request." });
+	}
+});
+
+router.post("/reply", async (req, res) => {
+	try {
+		const uid = xss(req.body.uid);
+		const id = xss(req.body.id);
+		const reply = xss(req.body.reply);
+		const isAI = req.body.isAI || false;
+		const updatedDoubt = await doubtsData.addReply(uid, id, reply, isAI);
+		return res.status(200).json(updatedDoubt);
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json("reply addition unsuccessful");
 	}
 });
 
