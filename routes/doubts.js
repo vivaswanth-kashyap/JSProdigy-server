@@ -136,29 +136,44 @@ router.post("/ai-response", async (req, res) => {
 	}
 });
 
-router.post("/reply", async (req, res) => {
+router.post("/ai-response", async (req, res) => {
 	try {
-		const uid = xss(req.body.uid);
-		const id = xss(req.body.id);
-		const reply = xss(req.body.reply);
-		const isAI = req.body.isAI || false;
+		const { doubt, id } = req.body;
+		console.log("Received AI response request:", { doubt, id });
 
-		console.log("Received reply request:", { uid, id, reply, isAI });
+		if (!doubt || typeof doubt !== "string" || doubt.trim().length === 0) {
+			return res
+				.status(400)
+				.json({ error: "Invalid doubt. Please provide a non-empty string." });
+		}
 
 		if (!ObjectId.isValid(id)) {
 			return res.status(400).json({ error: "Invalid doubt id format" });
 		}
 
-		const updatedDoubt = await doubtsData.addReply(uid, id, reply, isAI);
+		const aiResponse = await getAIResponse(doubt);
+		const unescapedResponse = unescapeString(aiResponse);
+		const structuredResponse = parseAIResponse(unescapedResponse);
 
-		console.log("Updated doubt:", updatedDoubt);
+		console.log("Structured AI response:", structuredResponse);
 
-		return res.status(200).json(updatedDoubt);
+		// Save AI response as a reply
+		const updatedDoubt = await doubtsData.addReply(
+			"AI",
+			id,
+			JSON.stringify(structuredResponse),
+			true
+		);
+
+		res.json(updatedDoubt);
 	} catch (error) {
-		console.error("Error in POST /doubts/reply:", error);
-		return res
+		console.error("Error in POST /doubts/ai-response:", error);
+		res
 			.status(500)
-			.json({ error: "Reply addition unsuccessful", details: error.message });
+			.json({
+				error: "An error occurred while processing your request.",
+				details: error.message,
+			});
 	}
 });
 

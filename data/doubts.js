@@ -54,6 +54,17 @@ const addReply = async (uid, id, reply, isAI = false) => {
 	console.log("Adding reply:", { id, newReply });
 
 	try {
+		// First, try to find the document
+		const existingDoubt = await doubtsCollection.findOne({
+			_id: new ObjectId(id),
+		});
+		console.log("Existing doubt:", existingDoubt);
+
+		if (!existingDoubt) {
+			console.error("No document found with the given id");
+			throw new Error("No document found with the given id");
+		}
+
 		const updatedInfo = await doubtsCollection.findOneAndUpdate(
 			{ _id: new ObjectId(id) },
 			{ $push: { replies: newReply } },
@@ -62,7 +73,7 @@ const addReply = async (uid, id, reply, isAI = false) => {
 
 		if (!updatedInfo.value) {
 			console.error("Update operation did not modify any document");
-			throw new Error("No document found with the given id");
+			throw new Error("Failed to update the document");
 		}
 
 		console.log("Updated doubt:", updatedInfo.value);
