@@ -145,15 +145,26 @@ router.post("/reply", async (req, res) => {
 			return res.status(400).json({ error: "Missing required fields" });
 		}
 
+		if (!ObjectId.isValid(id)) {
+			return res.status(400).json({ error: "Invalid doubt id format" });
+		}
+
 		const updatedDoubt = await doubtsData.addReply(uid, id, reply);
 		console.log("Updated doubt:", updatedDoubt);
 		res.json(updatedDoubt);
 	} catch (error) {
 		console.error("Error in POST /doubts/reply:", error);
-		res.status(500).json({
-			error: "An error occurred while processing your request.",
-			details: error.message,
-		});
+		if (error.message.includes("No document found with id")) {
+			res.status(404).json({
+				error: "Doubt not found",
+				details: error.message,
+			});
+		} else {
+			res.status(500).json({
+				error: "An error occurred while processing your request.",
+				details: error.message,
+			});
+		}
 	}
 });
 

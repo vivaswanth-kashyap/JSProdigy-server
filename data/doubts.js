@@ -57,6 +57,14 @@ const addReply = async (uid, id, reply, isAI = false) => {
 			throw new Error("Invalid doubt id format");
 		}
 
+		// First, check if the document exists
+		const existingDoubt = await doubtsCollection.findOne({
+			_id: new ObjectId(id),
+		});
+		if (!existingDoubt) {
+			throw new Error(`No document found with id: ${id}`);
+		}
+
 		const updatedInfo = await doubtsCollection.findOneAndUpdate(
 			{ _id: new ObjectId(id) },
 			{ $push: { replies: newReply } },
@@ -64,9 +72,7 @@ const addReply = async (uid, id, reply, isAI = false) => {
 		);
 
 		if (!updatedInfo.value) {
-			console.error(
-				"No document found or update operation did not modify any document"
-			);
+			console.error("Update operation did not modify any document");
 			throw new Error("Failed to update the document");
 		}
 
