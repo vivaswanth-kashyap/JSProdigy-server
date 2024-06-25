@@ -16,9 +16,16 @@ AWS.config.update({
 
 const s3 = new AWS.S3();
 
-const listVideos = async () => {
+const BUCKET_NAME = process.env.S3_BUCKET_NAME;
+
+if (!BUCKET_NAME) {
+	console.error("S3_BUCKET_NAME is not set in the environment variables");
+	process.exit(1);
+}
+
+export const listVideos = async () => {
 	const params = {
-		Bucket: process.env.S3_BUCKET_NAME,
+		Bucket: BUCKET_NAME,
 	};
 
 	try {
@@ -34,9 +41,9 @@ const listVideos = async () => {
 	}
 };
 
-const getVideoUrl = async (key) => {
+export const getVideoUrl = async (key) => {
 	const params = {
-		Bucket: process.env.S3_BUCKET_NAME,
+		Bucket: BUCKET_NAME,
 		Key: key,
 		Expires: 3600, // URL will be valid for 1 hour
 	};
@@ -48,5 +55,3 @@ const getVideoUrl = async (key) => {
 		throw error;
 	}
 };
-
-export { listVideos, getVideoUrl };
