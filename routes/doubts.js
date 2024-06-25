@@ -129,12 +129,10 @@ router.post("/ai-response", async (req, res) => {
 		res.json(updatedDoubt);
 	} catch (error) {
 		console.error("Error in POST /doubts/ai-response:", error);
-		res
-			.status(500)
-			.json({
-				error: "An error occurred while processing your request.",
-				details: error.message,
-			});
+		res.status(500).json({
+			error: "An error occurred while processing your request.",
+			details: error.message,
+		});
 	}
 });
 
@@ -144,9 +142,17 @@ router.post("/reply", async (req, res) => {
 		const id = xss(req.body.id);
 		const reply = xss(req.body.reply);
 		const isAI = req.body.isAI || false;
+
 		console.log("Received reply request:", { uid, id, reply, isAI });
+
+		if (!ObjectId.isValid(id)) {
+			return res.status(400).json({ error: "Invalid doubt id format" });
+		}
+
 		const updatedDoubt = await doubtsData.addReply(uid, id, reply, isAI);
+
 		console.log("Updated doubt:", updatedDoubt);
+
 		return res.status(200).json(updatedDoubt);
 	} catch (error) {
 		console.error("Error in POST /doubts/reply:", error);

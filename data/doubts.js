@@ -50,15 +50,28 @@ const addReply = async (uid, id, reply, isAI = false) => {
 		isAI: isAI,
 		timestamp: new Date(),
 	};
-	const updatedInfo = await doubtsCollection.findOneAndUpdate(
-		{ _id: new ObjectId(id) },
-		{ $push: { replies: newReply } },
-		{ returnDocument: "after" }
-	);
-	if (!updatedInfo.value) {
-		throw "could not update doubt with new reply";
+
+	console.log("Adding reply:", { id, newReply });
+
+	try {
+		const updatedInfo = await doubtsCollection.findOneAndUpdate(
+			{ _id: new ObjectId(id) },
+			{ $push: { replies: newReply } },
+			{ returnDocument: "after" }
+		);
+
+		if (!updatedInfo.value) {
+			console.error("Update operation did not modify any document");
+			throw new Error("No document found with the given id");
+		}
+
+		console.log("Updated doubt:", updatedInfo.value);
+
+		return updatedInfo.value;
+	} catch (error) {
+		console.error("Error in addReply:", error);
+		throw error;
 	}
-	return findDoubt(id);
 };
 
 export { askDoubt, findAllDoubts, findDoubt, addReply };
