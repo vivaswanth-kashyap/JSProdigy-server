@@ -1,17 +1,14 @@
 import express from "express";
-import { getVideoUrl } from "../data/videos.js";
+import { getVideoDetails } from "../data/videos.js";
 
 const router = express.Router();
 
-router.get("/:key", async (req, res) => {
-	const videoKey = req.params.key;
-
+router.get("/:id", async (req, res) => {
+	const videoId = req.params.id;
 	try {
-		console.log(`Generating URL for video: ${videoKey}`);
-		const url = await getVideoUrl(videoKey);
-
-		// Instead of converting and sending the file, we'll return the signed URL
-		res.json({ url: url });
+		console.log(`Fetching details for video: ${videoId}`);
+		const videoDetails = await getVideoDetails(videoId);
+		res.json(videoDetails);
 	} catch (error) {
 		console.error("Error processing video:", error);
 		res
